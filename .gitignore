@@ -1,0 +1,109 @@
+# Dependencias de Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Archivos de entorno
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Archivos de configuración local
+config.local.js
+config.local.json
+
+# Logs
+logs
+*.log
+
+# Directorios de build y distribución
+dist/
+build/
+out/
+
+# Archivos temporales del sistema
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Archivos de IDE y editores
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Archivos de cache
+.cache/
+.parcel-cache/
+
+# Archivos de Python (si el backend usa Python)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.pytest_cache/
+
+# Archivos de base de datos
+*.db
+*.sqlite
+*.sqlite3
+
+# Archivos de backup
+*.bak
+*.backup
+
+# Archivos de media y uploads (si aplica)
+uploads/
+media/
+
+# Archivos de certificados SSL
+*.pem
+*.key
+*.crt
+
+# Archivos de configuración de servidor
+nginx.conf
+apache.conf
+
+# Archivos de Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Archivos de CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Archivos de documentación temporal
+*.tmp
+*.temp
+
+# Archivos de reportes de cobertura
+coverage/
+.nyc_output/
+
+# Archivos de bundle y minificación
+*.min.js
+*.min.css
+*.bundle.js
+
+# Archivos de configuración local de herramientas
+.eslintrc.local
+.prettierrc.local 

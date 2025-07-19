@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+     
+    <meta charset="UTF-8" />
+     
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+     
+    <title>Chat - Empresa de ascensores</title>
+     
+    <script src="https://cdn.tailwindcss.com"></script>
+     
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+     
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+     
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+     
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+     
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+     
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body
+    class="bg-gradient-to-r from-vertical-turquoise to-vertical-green min-h-screen flex items-center justify-center p-4"
+  >
+     
+    <div
+      class="bg-white rounded-3xl p-6 max-w-4xl w-full flex flex-col shadow-lg"
+    >
+         
+      <div class="flex justify-between items-center mb-6">
+             
+        <h1
+          id="welcomeMessage"
+          class="text-3xl font-bold text-vertical-gray"
+        ></h1>
+             
+        <div class="flex space-x-2">
+                 
+          <button
+            id="clearChatBtn"
+            class="bg-vertical-gray hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-xl text-sm"
+          >
+            Limpiar Chat
+          </button>
+                 
+          <button
+            id="logoutBtn"
+            class="bg-vertical-gray hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-xl text-sm"
+          >
+            Cerrar Sesión
+          </button>
+               
+        </div>
+           
+      </div>
+
+         
+      <div
+        id="messageBox"
+        class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden z-50"
+      >
+             
+        <div
+          class="bg-white p-6 rounded-xl shadow-lg max-w-sm w-full text-center"
+        >
+                 
+          <h3
+            id="messageBoxTitle"
+            class="text-xl font-bold mb-4 text-vertical-gray"
+          ></h3>
+                 
+          <p id="messageBoxContent" class="mb-6"></p>
+                 
+          <button
+            id="messageBoxClose"
+            class="bg-vertical-green hover:bg-green-700 text-white font-bold py-2 px-4 rounded-xl"
+          >
+            Aceptar
+          </button>
+                 
+          <a
+            id="messageBoxLink"
+            href="#"
+            target="_blank"
+            class="hidden bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-xl ml-2"
+            >Ver Catálogo</a
+          >
+               
+        </div>
+           
+      </div>
+
+         
+      <div
+        id="chatContainer"
+        class="flex-1 min-h-[400px] max-h-[400px] overflow-y-auto p-4 bg-gradient-to-br from-gray-50 to-gray-200 rounded-xl mb-2 shadow-inner"
+      ></div>
+
+         
+      <div class="flex flex-wrap justify-center gap-2 h-[50px]">
+             
+        <button
+          id="technicalBtn"
+          class="bg-vertical-turquoise hover:bg-teal-700 text-white font-bold py-4 px-4 rounded-xl text-sm transition duration-200 ease-in-out transform hover:scale-105"
+        >
+                  Asistencia Técnica      
+        </button>
+             
+        <button
+          id="quoteBtn"
+          class="bg-vertical-turquoise hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-xl text-sm transition duration-200 ease-in-out transform hover:scale-105"
+        >
+                  Solicitar Cotización      
+        </button>
+                   
+        <button
+          id="catalogBtn"
+          class="bg-vertical-turquoise hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-xl text-sm transition duration-200 ease-in-out transform hover:scale-105"
+        >
+                  Ver Catálogo de Repuestos      
+        </button>
+           
+      </div>
+
+         
+      <div class="flex">
+             
+        <input
+          type="text"
+          id="messageInput"
+          class="flex-1 p-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-vertical-turquoise focus:border-transparent transition duration-200 ease-in-out"
+          placeholder="Escribe tu mensaje..."
+        />
+             
+        <button
+          id="sendMessageBtn"
+          class="bg-vertical-green hover:bg-green-700 text-white font-bold py-3 px-6 ml-2 rounded-xl transition duration-200 ease-in-out transform hover:scale-105"
+        >
+                  <span class="submit-text">Enviar</span>        
+          <span class="loading-text hidden"
+            ><i class="fas fa-spinner fa-spin"></i> Enviando...</span
+          >
+               
+        </button>
+           
+      </div>
+       
+    </div>
+
+     
+    <script src="./js/firebase-config.js"></script>
+     
+    <script type="module">
+      import { getChatbotResponse } from "./js/main.js";
+
+      if (
+        typeof firebase === "undefined" ||
+        !window.auth ||
+        !window.db ||
+        !window.database
+      ) {
+        console.error("Firebase SDK o configuración no cargada.");
+        alert("Error al cargar Firebase. Revisa la consola.");
+        throw new Error("Firebase no cargado.");
+      }
+
+      const chatContainer = document.getElementById("chatContainer");
+      const messageInput = document.getElementById("messageInput");
+      const sendMessageBtn = document.getElementById("sendMessageBtn");
+      const logoutBtn = document.getElementById("logoutBtn");
+      const welcomeMessage = document.getElementById("welcomeMessage");
+      const messageBox = document.getElementById("messageBox");
+      const messageBoxTitle = document.getElementById("messageBoxTitle");
+      const messageBoxContent = document.getElementById("messageBoxContent");
+      const messageBoxClose = document.getElementById("messageBoxClose");
+      const messageBoxLink = document.getElementById("messageBoxLink");
+      const technicalBtn = document.getElementById("technicalBtn");
+      const quoteBtn = document.getElementById("quoteBtn");
+      const catalogBtn = document.getElementById("catalogBtn");
+      const clearChatBtn = document.getElementById("clearChatBtn");
+
+      function showMessageBox(title, message, link = null, linkText = "") {
+        messageBoxTitle.textContent = title;
+        messageBoxContent.innerHTML = message;
+        if (link) {
+          messageBoxLink.href = link;
+          messageBoxLink.textContent = linkText;
+          messageBoxLink.classList.remove("hidden");
+        } else {
+          messageBoxLink.classList.add("hidden");
+        }
+        messageBox.classList.remove("hidden");
+      }
+
+      messageBoxClose.addEventListener("click", () =>
+        messageBox.classList.add("hidden")
+      );
+
+      function encryptMessage(message, key) {
+        return CryptoJS.AES.encrypt(message, key).toString();
+      }
+
+      function decryptMessage(ciphertext, key) {
+        try {
+          const bytes = CryptoJS.AES.decrypt(ciphertext, key);
+          return bytes.toString(CryptoJS.enc.Utf8);
+        } catch (e) {
+          console.error("Error de desencriptación:", e);
+          return "[Mensaje corrupto]";
+        }
+      }
+
+      function displayMessage(
+        content,
+        isUser,
+        userName = null,
+        allowHtml = false
+      ) {
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `p-3 my-2 rounded-xl text-wrap break-words ${
+          isUser
+            ? "message-user ml-auto max-w-[75%]"
+            : "message-bot mr-auto max-w-[75%]"
+        }`;
+        if (allowHtml) {
+          messageDiv.innerHTML = content;
+        } else {
+          messageDiv.textContent = content;
+        }
+        chatContainer.appendChild(messageDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+
+      async function loadChatHistory(userId, encryptionKey) {
+        try {
+          const snapshot = await db
+            .collection("chats")
+            .doc(userId)
+            .collection("messages")
+            .orderBy("timestamp", "asc")
+            .limit(10)
+            .get();
+          chatContainer.innerHTML = "";
+          snapshot.forEach((doc) => {
+            const data = doc.data();
+            const decryptedMessage = decryptMessage(
+              data.message,
+              encryptionKey
+            );
+            displayMessage(
+              decryptedMessage,
+              data.isUser,
+              data.userName,
+              !data.isUser
+            );
+          });
+        } catch (error) {
+          console.error("Error al cargar chat:", error);
+          if (error.code === "permission-denied") {
+            showMessageBox(
+              "Error",
+              "No tienes permiso para acceder al historial. Contacta a soporte."
+            );
+          } else {
+            showMessageBox("Error", "No se pudo cargar el historial.");
+          }
+        }
+      }
+
+      async function saveMessage(
+        userId,
+        userName,
+        message,
+        isUser,
+        encryptionKey
+      ) {
+        try {
+          const messagesRef = db
+            .collection("chats")
+            .doc(userId)
+            .collection("messages");
+          const snapshot = await messagesRef.get();
+          const MAX_MESSAGES_HISTORY = 20;
+          if (snapshot.size >= MAX_MESSAGES_HISTORY) {
+            const oldestDocs = snapshot.docs.slice(
+              0,
+              snapshot.size - MAX_MESSAGES_HISTORY + 1
+            );
+            for (const doc of oldestDocs) {
+              await doc.ref.delete();
+            }
+          }
+          await messagesRef.add({
+            userName,
+            message: encryptMessage(message, encryptionKey),
+            isUser,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          });
+        } catch (error) {
+          console.error("Error al guardar mensaje:", error);
+          if (error.code === "permission-denied") {
+            showMessageBox(
+              "Error",
+              "No tienes permiso para guardar mensajes. Contacta a soporte."
+            );
+          } else {
+            showMessageBox("Error", "No se pudo guardar el mensaje.");
+          }
+        }
+      }
+
+      async function clearChatHistory(userId) {
+        if (
+          !confirm(
+            "¿Estás seguro de que quieres limpiar todo el historial de chat? Esta acción es irreversible."
+          )
+        ) {
+          return;
+        }
+        try {
+          const messagesRef = db
+            .collection("chats")
+            .doc(userId)
+            .collection("messages");
+          const snapshot = await messagesRef.get();
+          const batch = db.batch();
+          snapshot.docs.forEach((doc) => {
+            batch.delete(doc.ref);
+          });
+          await batch.commit();
+          chatContainer.innerHTML = "";
+          displayMessage("Tu historial de chat ha sido limpiado.", false);
+          showMessageBox(
+            "Historial Limpiado",
+            "El historial de chat ha sido borrado exitosamente."
+          );
+        } catch (error) {
+          console.error("Error al limpiar historial:", error);
+          showMessageBox(
+            "Error",
+            "No se pudo limpiar el historial de chat: " + error.message
+          );
+        }
+      }
+
+      sendMessageBtn.addEventListener("click", async () => {
+        const message = messageInput.value.trim();
+        if (!message) {
+          showMessageBox("Error", "Escribe un mensaje válido.");
+          return;
+        }
+
+        // Prevenir envíos múltiples
+        if (sendMessageBtn.disabled) {
+          return;
+        }
+
+        // Activar estado de carga
+        sendMessageBtn.disabled = true;
+        sendMessageBtn.classList.add("loading");
+        messageInput.disabled = true;
+
+        // Limpiar input inmediatamente
+        messageInput.value = "";
+
+        try {
+          // Lógica de usuario y guardado en Firebase
+          const user = auth.currentUser;
+          const userName = user.displayName || "Usuario";
+          const userId = user.uid;
+          let encryptionKey = "default-key";
+          try {
+            const userDoc = await db.collection("users").doc(userId).get();
+            if (userDoc.exists) {
+              encryptionKey = userDoc.data().encryptionKey || "default-key";
+            }
+          } catch (error) {
+            // Si falla, usa default-key
+          }
+
+          displayMessage(message, true, userName);
+          await saveMessage(userId, userName, message, true, encryptionKey);
+
+          // ¡Usa la función importada de main.js!
+          const aiResponse = await getChatbotResponse(message);
+          displayMessage(aiResponse, false, null, true);
+          await saveMessage(
+            userId,
+            "Asistente",
+            aiResponse.replace(/<[^>]+>/g, ""),
+            false,
+            encryptionKey
+          );
+        } catch (error) {
+          console.error("Error al procesar mensaje:", error);
+          displayMessage(
+            "❌ Lo siento, hubo un error al procesar tu mensaje. Inténtalo de nuevo.",
+            false,
+            null,
+            true
+          );
+        } finally {
+          // Restaurar estado normal después de un pequeño delay
+          setTimeout(() => {
+            sendMessageBtn.disabled = false;
+            sendMessageBtn.classList.remove("loading");
+            messageInput.disabled = false;
+            messageInput.focus(); // Volver a enfocar el input
+          }, 1000); // 1 segundo de cooldown
+        }
+      });
+
+      messageInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter" && !sendMessageBtn.disabled) {
+          sendMessageBtn.click();
+        }
+      });
+
+      logoutBtn.addEventListener("click", () => {
+        auth
+          .signOut()
+          .then(() => {
+            window.location.href = "login.html";
+          })
+          .catch((error) => {
+            showMessageBox("Error", "Error al cerrar sesión: " + error.message);
+          });
+      });
+
+      technicalBtn.addEventListener("click", () => {
+        if (!sendMessageBtn.disabled) {
+          messageInput.value = "Necesito asistencia técnica";
+          sendMessageBtn.click();
+        }
+      });
+
+      quoteBtn.addEventListener("click", () => {
+        if (!sendMessageBtn.disabled) {
+          messageInput.value = "Quiero solicitar una cotización";
+          sendMessageBtn.click();
+        }
+      });
+
+      catalogBtn.addEventListener("click", () => {
+        window.open("http://localhost:5000/catalogo", "_blank");
+      });
+
+      clearChatBtn.addEventListener("click", async () => {
+        const user = auth.currentUser;
+        if (user) {
+          await clearChatHistory(user.uid);
+        } else {
+          showMessageBox("Error", "Inicia sesión para limpiar el historial.");
+        }
+      });
+
+      auth.onAuthStateChanged(async (user) => {
+        if (user) {
+          const userName = user.displayName || "Usuario";
+          welcomeMessage.textContent = `Bienvenido, ${userName}!`;
+          let encryptionKey = "default-key";
+          try {
+            const userDoc = await db.collection("users").doc(user.uid).get();
+            if (userDoc.exists) {
+              encryptionKey = userDoc.data().encryptionKey || "default-key";
+            }
+            await loadChatHistory(user.uid, encryptionKey);
+            const snapshot = await db
+              .collection("chats")
+              .doc(user.uid)
+              .collection("messages")
+              .get();
+            if (snapshot.empty) {
+              const initialBotMessage = `¡Hola ${userName} 🙋‍♂️! Soy tu asistente virtual.<br><br> Estoy aquí para ayudarte con cualquier consulta sobre nuestros servicios de ascensores y escaleras eléctricas.⚡`;
+              displayMessage(initialBotMessage, false, null, true);
+              await saveMessage(
+                user.uid,
+                "Asistente",
+                initialBotMessage.replace(/<[^>]+>/g, ""),
+                false,
+                encryptionKey
+              );
+            }
+          } catch (error) {
+            console.error("Error al inicializar chat:", error);
+            showMessageBox("Error", "No se pudo inicializar el chat.");
+          }
+        } else {
+          window.location.href = "login.html";
+        }
+      });
+    </script>
+  </body>
+</html>

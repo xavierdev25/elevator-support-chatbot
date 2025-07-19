@@ -1,0 +1,31 @@
+# Chatbot de Mantenimiento de Ascensores - Requisitos
+
+# Para servidor web (REQUERIDO)
+flask==2.3.3
+flask-cors==4.0.0
+
+# Para interfaz web (opcional)
+# flask==2.3.3
+# flask-cors==4.0.0
+
+# Para procesamiento de lenguaje natural avanzado (opcional)
+# nltk==3.8.1
+# spacy==3.6.1
+
+# Para base de datos (opcional)
+# sqlite3  # Incluido en Python estándar
+# sqlalchemy==2.0.21
+
+# Para análisis de sentimientos (opcional)
+# textblob==0.17.1
+
+# Para logging avanzado (opcional)
+# loguru==0.7.2
+
+# Para tests (opcional)
+# pytest==7.4.2
+# pytest-cov==4.1.0
+
+# Para documentación automática (opcional)
+# sphinx==7.2.6
+# sphinx-rtd-theme==1.3.0 

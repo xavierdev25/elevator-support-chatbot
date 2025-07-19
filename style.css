@@ -1,0 +1,99 @@
+     /* Definición de variables CSS */
+        :root {
+            --color-vertical-green: #2ecc71; /* Brighter green */
+            --color-vertical-turquoise: #1abc9c; /* Brighter turquoise */
+            --color-vertical-gray: #34495e; /* Darker gray for text/accents */
+            --color-light-gray: #ecf0f1; /* Light gray for chat background */
+            --color-dark-text: #2c3e50; /* Dark text for readability */
+        }
+
+        /* Clases CSS de utilidad que replicaban Tailwind */
+        /* Estas clases ahora deben ser usadas manualmente en  HTML */
+        .bg-vertical-green { background-color: var(--color-vertical-green); }
+        .text-vertical-green { color: var(--color-vertical-green); }
+        .border-vertical-green { border-color: var(--color-vertical-green); }
+
+        .bg-vertical-turquoise { background-color: var(--color-vertical-turquoise); }
+        .text-vertical-turquoise { color: var(--color-vertical-turquoise); }
+        .border-vertical-turquoise { border-color: var(--color-vertical-turquoise); }
+
+        .bg-vertical-gray { background-color: var(--color-vertical-gray); }
+        .text-vertical-gray { color: var(--color-vertical-gray); }
+        .border-vertical-gray { border-color: var(--color-vertical-gray); }
+
+        /* Estilos base */
+        body {
+            font-family: 'Inter', sans-serif;
+            /* El degradado del body ahora se define aquí si no usas clases en el HTML */
+            background: linear-gradient(to right, var(--color-vertical-turquoise), var(--color-vertical-green));
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem; /* p-4 de Tailwind */
+        }
+
+        /* Estilos específicos del chat */
+        .loading .submit-text { display: none; }
+        .loading .loading-text { display: inline; }
+
+        /* Estilos para el estado de carga */
+        .loading {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        /* Estilos para input deshabilitado */
+        #messageInput:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background-color: #f8f9fa;
+        }
+
+        /* Animación de spinner */
+        .loading-text i {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .message-user {
+            background-color: var(--color-vertical-turquoise);
+            color: white;
+            /* border-bottom-right-radius: 4px; */ /* Este era el problema de sintaxis. Deberías definirlo en tu JS para el efecto de burbuja. */
+            /* Si quieres un borde fijo en CSS, aquí va: */
+            border-radius: 0.75rem; /* rounded-xl de Tailwind (12px) */
+            border-bottom-right-radius: 4px; /* O puedes dejar 4px si era intencional */
+        }
+        
+        .message-bot {
+            background-color: var(--color-light-gray);
+            color: var(--color-dark-text);
+            /* border-bottom-left-radius: 4px; */ /* Este era el problema de sintaxis. Igual que arriba. */
+            border-radius: 0.75rem; /* rounded-xl de Tailwind (12px) */
+            border-bottom-left-radius: 4px; /* O puedes dejar 4px si era intencional */
+        }
+
+        .message-bot a {
+            color: var(--color-vertical-turquoise);
+            text-decoration: underline;
+        }
+
+        /* Scrollbar Styling */
+        #chatContainer::-webkit-scrollbar {
+            width: 8px;
+        }
+        #chatContainer::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        #chatContainer::-webkit-scrollbar-thumb {
+            background: var(--color-vertical-green);
+            border-radius: 10px;
+        }
+        #chatContainer::-webkit-scrollbar-thumb:hover {
+            background: #27ae60;
+        }

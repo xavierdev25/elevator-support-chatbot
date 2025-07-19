@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Empresa de ascensores-acceso</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <style>
+    :root {
+      --color-vertical-green: #2ecc71;
+      --color-vertical-turquoise: #1abc9c;
+      --color-vertical-gray: #34495e;
+    }
+    .bg-vertical-green { background-color: var(--color-vertical-green); }
+    .text-vertical-green { color: var(--color-vertical-green); }
+    .border-vertical-green { border-color: var(--color-vertical-green); }
+    .bg-vertical-turquoise { background-color: var(--color-vertical-turquoise); }
+    .text-vertical-turquoise { color: var(--color-vertical-turquoise); }
+    .border-vertical-turquoise { border-color: var(--color-vertical-turquoise); }
+    .bg-vertical-gray { background-color: var(--color-vertical-gray); }
+    .text-vertical-gray { color: var(--color-vertical-gray); }
+    .border-vertical-gray { border-color: var(--color-vertical-gray); }
+    body { font-family: 'Inter', sans-serif; }
+    .form-container-wrapper { perspective: 1000px; }
+    .form-content {
+      transition: transform 0.6s ease-in-out, opacity 0.6s ease-in-out;
+      backface-visibility: hidden;
+    }
+    .login-active .login-form {
+      transform: rotateY(0deg);
+      opacity: 1;
+      z-index: 10;
+    }
+    .login-active .create-account-form {
+      transform: rotateY(180deg);
+      opacity: 0;
+      position: absolute;
+      left: 0;
+      width: 100%;
+    }
+    .create-active .login-form {
+      transform: rotateY(-180deg);
+      opacity: 0;
+      position: absolute;
+      left: 0;
+      width: 100%;
+    }
+    .create-active .create-account-form {
+      transform: rotateY(0deg);
+      opacity: 1;
+      z-index: 10;
+    }
+    .loading .submit-text { display: none; }
+    .loading .loading-text { display: inline; }
+  </style>
+</head>
+<body class="bg-gradient-to-r from-vertical-turquoise to-vertical-green min-h-screen flex items-center justify-center p-4">
+  <div class="bg-white rounded-3xl p-8 max-w-4xl w-full flex flex-col md:flex-row">
+    <div class="md:w-1/2 p-6 flex flex-col justify-center items-center text-center bg-vertical-gray text-white rounded-t-3xl md:rounded-l-3xl md:rounded-tr-none mb-8 md:mb-0">
+      <h2 class="text-3xl font-bold mb-6">¡Únete a Ascensores!</h2>
+      <p class="text-lg mb-8">Descubre un mundo de beneficios al crear tu cuenta:</p>
+      <ul class="list-disc list-inside text-left space-y-3 px-4">
+        <li><i class="fas fa-gift text-vertical-turquoise mr-2"></i>Recibirás descuentos recientes a tu correo.</li>
+        <li><i class="fas fa-robot text-vertical-turquoise mr-2"></i>La inteligencia artificial te brindará una experiencia de usuario única.</li>
+      </ul>
+    </div>
+    <div class="md:w-1/2 p-6 flex flex-col justify-center relative form-container-wrapper">
+      <div id="loginForm" class="form-content login-form absolute inset-0 p-6 flex flex-col justify-center login-active">
+        <h2 class="text-3xl font-bold text-vertical-gray mb-6 text-center">Inicia Sesión</h2>
+        <div class="mb-4">
+          <label for="loginEmail" class="block text-vertical-gray text-sm font-bold mb-2">Correo Electrónico</label>
+          <div class="relative">
+            <input type="email" id="loginEmail" class="shadow appearance-none border rounded-xl w-full py-3 px-4 pl-10 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-vertical-turquoise focus:border-transparent" placeholder="tu@ejemplo.com">
+            <i class="fas fa-envelope text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2"></i>
+          </div>
+        </div>
+        <div class="mb-6">
+          <label for="loginPassword" class="block text-vertical-gray text-sm font-bold mb-2">Contraseña</label>
+          <div class="relative">
+            <input type="password" id="loginPassword" class="shadow appearance-none border rounded-xl w-full py-3 px-4 pl-10 pr-10 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-vertical-turquoise focus:border-transparent" placeholder="********">
+            <i class="fas fa-lock text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2"></i>
+            <button type="button" id="toggleLoginPassword" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-vertical-turquoise focus:outline-none">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+        </div>
+        <p class="text-center">
+          <button id="forgotPasswordLink" class="text-vertical-turquoise hover:text-vertical-green text-sm font-bold focus:outline-none">¿Olvidaste tu contraseña?</button>
+        </p>
+        <button type="submit" id="loginSubmit" class="bg-vertical-green hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl focus:outline-none focus:shadow-outline transition duration-300 ease-in-out transform hover:scale-105 mt-4">
+          <span class="submit-text">Ingresar</span>
+          <span class="loading-text hidden"><i class="fas fa-spinner fa-spin"></i> Cargando...</span>
+        </button>
+        <p class="mt-6 text-center text-gray-600">
+          ¿No tienes una cuenta? <button id="showCreateAccount" class="text-vertical-turquoise hover:text-vertical-green font-bold focus:outline-none">Crea una aquí</button>
+        </p>
+      </div>
+      <div id="createAccountForm" class="form-content create-account-form absolute inset-0 p-6 flex flex-col justify-center opacity-0 transform rotateY(180deg)">
+        <h2 class="text-3xl font-bold text-vertical-gray mb-6 text-center">Crea tu Cuenta</h2>
+        <div class="mb-4">
+          <label for="createName" class="block text-vertical-gray text-sm font-bold mb-2">Nombre Completo</label>
+          <div class="relative">
+            <input type="text" id="createName" class="shadow appearance-none border rounded-xl w-full py-3 px-4 pl-10 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-vertical-turquoise focus:border-transparent" placeholder="Tu nombre">
+            <i class="fas fa-user text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2"></i>
+          </div>
+        </div>
+        <div class="mb-4">
+          <label for="createEmail" class="block text-vertical-gray text-sm font-bold mb-2">Correo Electrónico</label>
+          <div class="relative">
+            <input type="email" id="createEmail" class="shadow appearance-none border rounded-xl w-full py-3 px-4 pl-10 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-vertical-turquoise focus:border-transparent" placeholder="tu@ejemplo.com">
+            <i class="fas fa-envelope text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2"></i>
+          </div>
+        </div>
+        <div class="mb-4">
+          <label for="createPassword" class="block text-vertical-gray text-sm font-bold mb-2">Contraseña</label>
+          <div class="relative">
+            <input type="password" id="createPassword" class="shadow appearance-none border rounded-xl w-full py-3 px-4 pl-10 pr-10 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-vertical-turquoise focus:border-transparent" placeholder="********">
+            <i class="fas fa-lock text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2"></i>
+            <button type="button" id="toggleCreatePassword" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-vertical-turquoise focus:outline-none">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+        </div>
+        <div class="mb-6">
+          <label for="confirmPassword" class="block text-vertical-gray text-sm font-bold mb-2">Confirmar Contraseña</label>
+          <div class="relative">
+            <input type="password" id="confirmPassword" class="shadow appearance-none border rounded-xl w-full py-3 px-4 pl-10 pr-10 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-vertical-turquoise focus:border-transparent" placeholder="********">
+            <i class="fas fa-lock text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2"></i>
+            <button type="button" id="toggleConfirmPassword" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-vertical-turquoise focus:outline-none">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+        </div>
+        <button type="submit" id="createSubmit" class="bg-vertical-turquoise hover:bg-teal-700 text-white font-bold py-3 px-6 rounded-xl focus:outline-none focus:shadow-outline transition duration-300 ease-in-out transform hover:scale-105">
+          <span class="submit-text">Crear Cuenta</span>
+          <span class="loading-text hidden"><i class="fas fa-spinner fa-spin"></i> Cargando...</span>
+        </button>
+        <p class="mt-6 text-center text-gray-600">
+          ¿Ya tienes una cuenta? <button id="showLogin" class="text-vertical-green hover:text-vertical-turquoise font-bold focus:outline-none">Inicia Sesión</button>
+        </p>
+      </div>
+    </div>
+  </div>
+  <div id="messageBox" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
+    <div class="bg-white p-6 rounded-xl shadow-lg max-w-sm w-full text-center">
+      <h3 id="messageBoxTitle" class="text-xl font-bold mb-4 text-vertical-gray"></h3>
+      <p id="messageBoxContent" class="mb-6"></p>
+      <div id="messageBoxInput" class="hidden mb-6">
+        <input type="email" id="resetEmail" class="shadow appearance-none border rounded-xl w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-vertical-turquoise focus:border-transparent" placeholder="tu@ejemplo.com">
+      </div>
+      <div id="messageBoxButtons">
+        <button id="messageBoxClose" class="bg-vertical-green hover:bg-green-700 text-white font-bold py-2 px-4 rounded-xl">Aceptar</button>
+      </div>
+    </div>
+  </div>
+  <script src="./js/firebase-config.js"></script>
+  <script>
+    // Verificar que Firebase esté cargado
+    if (typeof firebase === 'undefined' || !window.auth || !window.db || !window.database) {
+      console.error('Firebase SDK o configuración no cargada.');
+      showMessageBox('Error', 'No se pudo cargar Firebase. Revisa la consola para más detalles.');
+      throw new Error('Firebase no cargado.');
+    }
+
+    // Selección de elementos
+    const loginForm = document.getElementById('loginForm');
+    const createAccountForm = document.getElementById('createAccountForm');
+    const showCreateAccountBtn = document.getElementById('showCreateAccount');
+    const showLoginBtn = document.getElementById('showLogin');
+    const formWrapper = document.querySelector('.form-container-wrapper');
+    const loginEmailInput = document.getElementById('loginEmail');
+    const loginPasswordInput = document.getElementById('loginPassword');
+    const toggleLoginPasswordBtn = document.getElementById('toggleLoginPassword');
+    const createNameInput = document.getElementById('createName');
+    const createEmailInput = document.getElementById('createEmail');
+    const createPasswordInput = document.getElementById('createPassword');
+    const toggleCreatePasswordBtn = document.getElementById('toggleCreatePassword');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+    const toggleConfirmPasswordBtn = document.getElementById('toggleConfirmPassword');
+    const loginSubmitBtn = document.getElementById('loginSubmit');
+    const createSubmitBtn = document.getElementById('createSubmit');
+    const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+    const messageBox = document.getElementById('messageBox');
+    const messageBoxTitle = document.getElementById('messageBoxTitle');
+    const messageBoxContent = document.getElementById('messageBoxContent');
+    const messageBoxInput = document.getElementById('messageBoxInput');
+    const messageBoxButtons = document.getElementById('messageBoxButtons');
+    const resetEmailInput = document.getElementById('resetEmail');
+
+    // Función para mostrar el messageBox
+    function showMessageBox(title, message, showInput = false) {
+      messageBoxTitle.textContent = title;
+      messageBoxContent.textContent = message;
+      messageBoxInput.classList.toggle('hidden', !showInput);
+      messageBoxButtons.innerHTML = `<button id="messageBoxClose" class="bg-vertical-green hover:bg-green-700 text-white font-bold py-2 px-4 rounded-xl">Aceptar</button>`;
+      messageBox.classList.remove('hidden');
+
+      // Reasignar evento de cerrar
+      document.getElementById('messageBoxClose').addEventListener('click', () => {
+        messageBox.classList.add('hidden');
+        messageBoxInput.classList.add('hidden');
+      });
+    }
+
+    // Función para alternar formularios
+    function toggleForm(formType) {
+      if (formType === 'login') {
+        formWrapper.classList.remove('create-active');
+        formWrapper.classList.add('login-active');
+      } else {
+        formWrapper.classList.remove('login-active');
+        formWrapper.classList.add('create-active');
+      }
+    }
+
+    // Función para alternar visibilidad de contraseña
+    function togglePasswordVisibility(inputElement, iconElement) {
+      if (inputElement.type === 'password') {
+        inputElement.type = 'text';
+        iconElement.classList.remove('fa-eye');
+        iconElement.classList.add('fa-eye-slash');
+      } else {
+        inputElement.type = 'password';
+        iconElement.classList.remove('fa-eye-slash');
+        iconElement.classList.add('fa-eye');
+      }
+    }
+
+    // Eventos para alternar visibilidad de contraseñas
+    toggleLoginPasswordBtn.addEventListener('click', () => {
+      const icon = toggleLoginPasswordBtn.querySelector('i');
+      togglePasswordVisibility(loginPasswordInput, icon);
+    });
+
+    toggleCreatePasswordBtn.addEventListener('click', () => {
+      const icon = toggleCreatePasswordBtn.querySelector('i');
+      togglePasswordVisibility(createPasswordInput, icon);
+    });
+
+    toggleConfirmPasswordBtn.addEventListener('click', () => {
+      const icon = toggleConfirmPasswordBtn.querySelector('i');
+      togglePasswordVisibility(confirmPasswordInput, icon);
+    });
+
+    // Eventos para alternar formularios
+    showCreateAccountBtn.addEventListener('click', () => toggleForm('create'));
+    showLoginBtn.addEventListener('click', () => toggleForm('login'));
+
+    // Inicio de sesión
+    loginSubmitBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const email = loginEmailInput.value.trim();
+      const password = loginPasswordInput.value.trim();
+
+      if (!email || !password) {
+        showMessageBox('Error', 'Por favor, rellena todos los campos.');
+        return;
+      }
+
+      loginSubmitBtn.classList.add('loading');
+      loginSubmitBtn.disabled = true;
+
+      auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          const displayName = user.displayName || 'Usuario';
+          showMessageBox('Éxito', `¡Bienvenido, ${displayName}!`);
+          setTimeout(() => {
+            window.location.href = `chat.html?id=${user.uid}`;
+          }, 2000);
+        })
+        .catch((error) => {
+          let errorMessage;
+          switch (error.code) {
+            case 'auth/invalid-email':
+              errorMessage = 'Correo electrónico inválido.';
+              break;
+            case 'auth/user-not-found':
+              errorMessage = 'Usuario no encontrado.';
+              break;
+            case 'auth/wrong-password':
+              errorMessage = 'Contraseña incorrecta.';
+              break;
+            default:
+              errorMessage = 'Error: ' + error.message;
+          }
+          showMessageBox('Error', errorMessage);
+          console.error('Error de inicio:', error);
+        })
+        .finally(() => {
+          loginSubmitBtn.classList.remove('loading');
+          loginSubmitBtn.disabled = false;
+        });
+    });
+
+    // Creación de cuenta
+    createSubmitBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const name = createNameInput.value.trim();
+      const email = createEmailInput.value.trim();
+      const password = createPasswordInput.value.trim();
+      const confirmPassword = confirmPasswordInput.value.trim();
+
+      if (!name || !email || !password || !confirmPassword) {
+        showMessageBox('Error', 'Por favor, rellena todos los campos.');
+        return;
+      }
+      if (password !== confirmPassword) {
+        showMessageBox('Error', 'Las contraseñas no coinciden.');
+        return;
+      }
+      if (password.length < 6) {
+        showMessageBox('Error', 'La contraseña debe tener al menos 6 caracteres.');
+        return;
+      }
+
+      createSubmitBtn.classList.add('loading');
+      createSubmitBtn.disabled = true;
+
+      auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          return auth.currentUser.updateProfile({ displayName: name })
+            .then(() => {
+              const encryptionKey = CryptoJS.lib.WordArray.random(32).toString();
+              return db.collection('users').doc(user.uid).set({ encryptionKey });
+            })
+            .then(() => {
+              showMessageBox('Éxito', `¡Cuenta creada para ${name}!`);
+              setTimeout(() => {
+                window.location.href = `chat.html?id=${user.uid}`;
+              }, 2000);
+            });
+        })
+        .catch((error) => {
+          let errorMessage;
+          switch (error.code) {
+            case 'auth/email-already-in-use':
+              errorMessage = 'El correo ya está registrado.';
+              break;
+            case 'auth/invalid-email':
+              errorMessage = 'Correo electrónico inválido.';
+              break;
+            case 'auth/weak-password':
+              errorMessage = 'La contraseña es demasiado débil.';
+              break;
+            default:
+              errorMessage = 'Error: ' + error.message;
+          }
+          showMessageBox('Error', errorMessage);
+          console.error('Error de creación:', error);
+        })
+        .finally(() => {
+          createSubmitBtn.classList.remove('loading');
+          createSubmitBtn.disabled = false;
+        });
+    });
+
+    // Recuperar contraseña
+    forgotPasswordLink.addEventListener('click', () => {
+      resetEmailInput.value = '';
+      messageBoxTitle.textContent = 'Recuperar Contraseña';
+      messageBoxContent.textContent = 'Ingresa tu correo electrónico para recibir un enlace de restablecimiento.';
+      messageBoxInput.classList.remove('hidden');
+      messageBoxButtons.innerHTML = `
+        <button id="messageBoxSubmit" class="bg-vertical-turquoise hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-xl mr-2">Enviar</button>
+        <button id="messageBoxCancel" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-xl">Cancelar</button>
+      `;
+      messageBox.classList.remove('hidden');
+
+      const submitBtn = document.getElementById('messageBoxSubmit');
+      const cancelBtn = document.getElementById('messageBoxCancel');
+
+      submitBtn.addEventListener('click', () => {
+        const email = resetEmailInput.value.trim();
+        if (!email) {
+          messageBoxContent.textContent = 'Por favor, ingresa un correo electrónico.';
+          return;
+        }
+
+        submitBtn.classList.add('loading');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+
+        auth.sendPasswordResetEmail(email)
+          .then(() => {
+            messageBoxTitle.textContent = 'Éxito';
+            messageBoxContent.textContent = 'Se ha enviado un enlace de restablecimiento a tu correo.';
+            messageBoxInput.classList.add('hidden');
+            messageBoxButtons.innerHTML = `
+              <button id="messageBoxClose" class="bg-vertical-green hover:bg-green-700 text-white font-bold py-2 px-4 rounded-xl">Aceptar</button>
+            `;
+            document.getElementById('messageBoxClose').addEventListener('click', () => {
+              messageBox.classList.add('hidden');
+            });
+          })
+          .catch((error) => {
+            let errorMessage;
+            switch (error.code) {
+              case 'auth/invalid-email':
+                errorMessage = 'Correo electrónico inválido.';
+                break;
+              case 'auth/user-not-found':
+                errorMessage = 'No se encontró un usuario con este correo.';
+                break;
+              default:
+                errorMessage = 'Error: ' + error.message;
+            }
+            messageBoxContent.textContent = errorMessage;
+            console.error('Error al enviar correo de restablecimiento:', error);
+          })
+          .finally(() => {
+            submitBtn.classList.remove('loading');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Enviar';
+          });
+      });
+
+      cancelBtn.addEventListener('click', () => {
+        messageBox.classList.add('hidden');
+        messageBoxInput.classList.add('hidden');
+        messageBoxButtons.innerHTML = `
+          <button id="messageBoxClose" class="bg-vertical-green hover:bg-green-700 text-white font-bold py-2 px-4 rounded-xl">Aceptar</button>
+        `;
+        document.getElementById('messageBoxClose').addEventListener('click', () => {
+          messageBox.classList.add('hidden');
+        });
+      });
+    });
+
+    // Inicialización
+    window.onload = () => {
+      toggleForm('login');
+    };
+
+    // Redirigir si el usuario ya está autenticado
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        window.location.href = `chat.html?id=${user.uid}`;
+      }
+    });
+  </script>
+</body>
+</html>
