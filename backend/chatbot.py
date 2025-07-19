@@ -279,9 +279,6 @@ class ElevatorChatbot:
         if "colegio" in normalized_input and ("cuanto" in normalized_input or "costo" in normalized_input):
             return self.handle_school_elevator_query()
         
-        if "modernizacion" in normalized_input and "escalera" in normalized_input and ("cuanto" in normalized_input or "costo" in normalized_input):
-            return self.handle_escalator_modernization_query()
-        
         if "modernizacion" in normalized_input and "ascensor" in normalized_input and ("cuanto" in normalized_input or "costo" in normalized_input):
             return self.handle_elevator_modernization_query()
         
@@ -290,6 +287,26 @@ class ElevatorChatbot:
         
         if "agendar" in normalized_input or "cita" in normalized_input or "programar" in normalized_input:
             return self.handle_appointment_request()
+        
+        # NUEVAS CONSULTAS ESPECÍFICAS
+        if "asistencia tecnica" in normalized_input or "asistencia técnica" in normalized_input or "soporte tecnico" in normalized_input or "soporte técnico" in normalized_input:
+            return self.handle_technical_support_query()
+        
+        if ("precio" in normalized_input or "costo" in normalized_input or "cuanto" in normalized_input) and "escalera" in normalized_input:
+            return self.handle_escalator_price_query()
+        
+        # CONSULTAS ESPECÍFICAS DE ESCALERAS ELÉCTRICAS - PRIORIDAD ALTA
+        if ("modernizacion" in normalized_input or "modernización" in normalized_input) and "escalera" in normalized_input:
+            return self.handle_escalator_modernization_query()
+        
+        if "mantenimiento" in normalized_input and "escalera" in normalized_input:
+            # Establecer el tipo de servicio y equipo
+            self.conversation_state["service_type"] = "mantenimiento"
+            self.conversation_state["equipment_type"] = "escalera"
+            return "¿Qué sector requiere mantenimiento? (Cabina, Parte mecánica, Sistema electrónico, Todo)"
+        
+        if ("cotizacion" in normalized_input or "cotización" in normalized_input) and "escalera" in normalized_input:
+            return self.handle_escalator_price_query()
         
         if "gracias" in normalized_input or "grasias" in normalized_input:
             return "¡De nada! 😊 Estoy aquí para ayudarte. Si tienes más preguntas o necesitas asistencia, no dudes en contactarme. ¡Que tengas un excelente día!"
@@ -831,6 +848,51 @@ class ElevatorChatbot:
         self.reset_conversation()
         
         return quote
+
+    def handle_technical_support_query(self) -> str:
+        """Maneja consultas sobre asistencia técnica"""
+        response = "🛠️ **ASISTENCIA TÉCNICA**\n\n"
+        response += f"**Nuestros servicios de asistencia técnica incluyen:**\n\n"
+        response += f"• 🔧 **Diagnóstico técnico** gratuito\n"
+        response += f"• 🚨 **Emergencias 24/7** - Respuesta en 15 minutos\n"
+        response += f"• 📞 **Soporte telefónico** especializado\n"
+        response += f"• 👨‍🔧 **Visitas técnicas** programadas\n"
+        response += f"• 📋 **Reportes técnicos** detallados\n"
+        response += f"• 🛡️ **Garantía** en todos los servicios\n\n"
+        response += f"**Para solicitar asistencia técnica:**\n"
+        response += f"• 📱 WhatsApp: {BUSINESS_INFO['contact_phone_primary']}\n"
+        response += f"• 📞 Teléfono: {BUSINESS_INFO['contact_phone_primary']}\n"
+        response += f"• 📧 Email: {BUSINESS_INFO['contact_email']}\n\n"
+        response += f"⏰ **Disponibilidad:** 24/7 para emergencias"
+        
+        return response
+    
+    def handle_escalator_price_query(self) -> str:
+        """Maneja consultas específicas sobre precios de escaleras eléctricas"""
+        pricing = BUSINESS_INFO["maintenance_pricing"]["escalera"]
+        
+        response = "💰 **PRECIOS DE MANTENIMIENTO - ESCALERAS ELÉCTRICAS**\n\n"
+        response += f"**Precio base:** S/. {pricing['base']:,} soles\n\n"
+        response += f"**Precios por marca:**\n"
+        for brand, price in pricing['by_brand'].items():
+            response += f"• {brand}: S/. {price:,} soles\n"
+        
+        response += f"\n**Ajustes por sector:**\n"
+        for sector, adjustment in pricing['sector_adjustment'].items():
+            if adjustment > 0:
+                response += f"• {sector.replace('_', ' ').title()}: +S/. {adjustment:,} soles\n"
+        
+        response += f"\n**Ajustes por antigüedad:**\n"
+        for age_range in pricing['age_adjustment']:
+            if age_range['adjustment'] > 0:
+                response += f"• {age_range['min']}-{age_range['max']} años: +S/. {age_range['adjustment']:,} soles\n"
+        
+        response += f"\n**Para cotización personalizada contacta:**\n"
+        response += f"• 📱 WhatsApp: {BUSINESS_INFO['contact_phone_primary']}\n"
+        response += f"• 📞 Teléfono: {BUSINESS_INFO['contact_phone_primary']}\n"
+        response += f"• 📧 Email: {BUSINESS_INFO['contact_email']}"
+        
+        return response
 
 def main():
     """Función principal para ejecutar el chatbot"""
